@@ -1,0 +1,35 @@
+{
+  "0925-01-OLIVA": {
+    "batch": "0925-01",
+    "name": "Oliva Serie V Melanio",
+    "vitola": "Toro · 6.5×52",
+    "origin": "Nicaragua",
+    "wrapper": "Ecuador Sumatra",
+    "binder": "Nicaragua",
+    "filler": "Nicaragua",
+    "strength": "Medium–Full",
+    "flavour": "Cedar, espresso, spice, with a nutty finish"
+  },
+  "0925-01-PLASENCIA": {
+    "batch": "0925-01",
+    "name": "Plasencia Alma Fuerte",
+    "vitola": "Sixto II · 6×60",
+    "origin": "Nicaragua",
+    "wrapper": "Nicaraguan",
+    "binder": "Nicaraguan",
+    "filler": "Nicaraguan",
+    "strength": "Full",
+    "flavour": "Dark chocolate, oak, black pepper, molasses"
+  },
+  "0925-01-MONTE": {
+    "batch": "0925-01",
+    "name": "Montecristo Open Eagle",
+    "vitola": "Toro · 5.9×54",
+    "origin": "Cuba",
+    "wrapper": "Cuban",
+    "binder": "Cuban",
+    "filler": "Cuban",
+    "strength": "Medium",
+    "flavour": "Creamy cedar, hazelnut, light spice"
+  }
+}
