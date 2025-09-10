@@ -1,157 +1,69 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cigar Membership – Reveal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cigar Reveal</title>
   <style>
-    :root { --max: 900px; --bg: #f6f6f6; --card: #ffffff; --ink: #111; --muted:#6b7280; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--ink); }
-    .wrap { max-width: var(--max); margin: 24px auto; padding: 24px; }
-    .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
-    h1{ margin:0 0 8px; font-size: 28px; }
-    .muted{ color: var(--muted); }
-    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:24px; }
-    @media (max-width: 800px){ .grid{ grid-template-columns: 1fr; } }
-    .specs{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-    .specs div{ padding:12px; background:#fafafa; border-radius:12px; }
-    .tag{ display:inline-block; padding:4px 10px; border-radius:999px; background:#efefef; font-size:12px; margin-right:6px; }
-    .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    button{ cursor:pointer; border:0; padding:10px 14px; border-radius:10px; }
-    .primary{ background:#111; color:#fff; }
-    .rating button{ background:#efefef; }
-    input[type="text"], textarea { width:100%; padding:12px; border:1px solid #e5e7eb; border-radius:10px; }
-    .panel { padding:16px; border:1px dashed #ddd; border-radius:12px; background:#fff; }
-    code { word-break: break-all; }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;max-width:800px;margin:2rem auto;padding:1rem}
+    .card{border:1px solid #ddd;border-radius:12px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    h1{margin:.2rem 0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .label{color:#666;font-size:.9rem}
+    .val{font-weight:600}
+    .qr{margin-top:1rem;text-align:center}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Cigar Membership</h1>
-      <p class="muted" id="batch">Batch: —</p>
-
-      <div class="grid">
-        <div>
-          <h2 id="name" style="margin-bottom:6px;">Scan a band to reveal</h2>
-          <div class="row" id="vitolaRow" style="margin-bottom:8px;"></div>
-          <p class="muted" id="origin">—</p>
-
-          <div class="specs" style="margin:16px 0;">
-            <div><strong>Wrapper</strong><br><span id="wrapper">—</span></div>
-            <div><strong>Binder</strong><br><span id="binder">—</span></div>
-            <div><strong>Filler</strong><br><span id="filler">—</span></div>
-            <div><strong>Strength</strong><br><span id="strength">—</span></div>
-          </div>
-
-          <div class="panel">
-            <strong>Flavour profile</strong>
-            <p id="flavour" style="margin:6px 0 0">—</p>
-          </div>
-
-          <div style="margin-top:16px;" class="row rating">
-            <strong>Rate it:</strong>
-            <div class="row" id="stars"></div>
-          </div>
-
-          <div style="margin-top:16px;">
-            <label for="notes"><strong>Your notes (optional)</strong></label>
-            <textarea id="notes" rows="4" placeholder="Cedar up front, cocoa mid-palate, peppery finish…"></textarea>
-          </div>
-
-          <div class="row" style="margin-top:16px;">
-            <button class="primary" id="saveBtn">Save rating & notes</button>
-            <button id="clearBtn">Clear</button>
-          </div>
-          <p class="muted" id="savedMsg" style="display:none;margin-top:8px;">Saved locally on this device.</p>
-        </div>
-
-        <div>
-          <div class="panel">
-            <strong>Reveal link</strong>
-            <p style="margin:6px 0;">
-              Use this format for QR codes:<br>
-              <code id="qrFormat"></code>
-            </p>
-            <p class="muted" id="idEcho"></p>
-            <p class="muted" id="err" style="color:#b91c1c;"></p>
-          </div>
-
-          <div style="margin-top:16px;">
-            <strong>Guess before reveal?</strong>
-            <div class="row" style="margin-top:8px;">
-              <button data-guess="yes">I guessed it</button>
-              <button data-guess="no">Nope</button>
-            </div>
-            <p class="muted" id="guessMsg" style="margin-top:8px;"></p>
-          </div>
-
-          <div style="margin-top:16px;" class="panel">
-            <strong>Reorder</strong>
-            <p class="muted">Loved it? Offer a reorder or sampler here.</p>
-            <button class="primary">Add to cart</button>
-          </div>
-        </div>
-      </div>
+  <div class="card">
+    <h1 id="title">Cigar Reveal</h1>
+    <div id="status">Loading...</div>
+    <div id="content" style="display:none">
+      <div class="grid" id="fields"></div>
+      <div class="qr"><img id="qr" alt="QR code" /></div>
+      <p><a id="backlink" href="./">Back to home</a></p>
     </div>
-
-    <p class="muted" style="margin-top:12px;">Tip: Bookmark this page. Every QR just passes a different <code>?id=…</code>.</p>
   </div>
-
   <script>
-    const $ = (id)=>document.getElementById(id);
-    const id = new URLSearchParams(location.search).get("id") || "";
-    const base = location.origin + location.pathname.replace(/index\.html$/, "");
-    $("qrFormat").textContent = base + "?id=YOUR-UNIQUE-ID";
-    $("idEcho").textContent = id ? `Loaded id: ${id}` : "No id in URL yet.";
-
-    // Build star buttons
-    const starWrap = $("stars");
-    for (let i=1;i<=5;i++){ const b=document.createElement("button"); b.textContent="★"; b.dataset.val=i; b.title=`Rate ${i}`; starWrap.appendChild(b); }
-    function highlightStars(n){ [...starWrap.querySelectorAll("button")].forEach((b,i)=>{ b.style.background = (i < n) ? "#111" : "#efefef"; b.style.color = (i < n) ? "#fff" : "#000"; }); }
-    let currentRating = 0;
-    starWrap.addEventListener("click",(e)=>{ if(e.target.tagName!=="BUTTON") return; currentRating=+e.target.dataset.val; highlightStars(currentRating); });
-    $("saveBtn").addEventListener("click",()=>{ const notes=$("notes").value.trim(); localStorage.setItem(`cigar-${id}`, JSON.stringify({rating:currentRating, notes})); $("savedMsg").style.display="block"; setTimeout(()=>$("savedMsg").style.display="none",1800); });
-    $("clearBtn").addEventListener("click",()=>{ $("notes").value=""; currentRating=0; highlightStars(0); localStorage.removeItem(`cigar-${id}`); });
-    document.querySelectorAll("[data-guess]").forEach(btn=>btn.addEventListener("click",()=>{ $("guessMsg").textContent = btn.dataset.guess==="yes" ? "Nice!" : "All good—keep tasting."; }));
-
-    // ---- Load data from /cigars.json (same repo root) ----
-    async function loadAndRender(){
-      try{
-        const res = await fetch(base + "cigars.json", {cache:"no-store"});
-        if(!res.ok) throw new Error("cigars.json not found");
-        const CIGARS = await res.json();
-
-        const d = id && CIGARS[id] ? CIGARS[id] : null;
-        if (!d){
-          $("err").textContent = id ? `No cigar found for id "${id}".` : "";
-        }
-        render(d);
-      }catch(err){
-        $("err").textContent = "Could not load cigars.json. Ensure it exists in the repo root.";
-        render(null);
+    function qs(key){
+      const u = new URL(window.location.href);
+      return u.searchParams.get(key);
+    }
+    async function run(){
+      const id = qs("id");
+      const res = await fetch("./items.json");
+      const data = await res.json();
+      let rec = null;
+      if(id && data[id]){
+        rec = data[id];
+      }else if(!id){
+        document.getElementById("status").textContent = "No ID provided in the URL.";
+        return;
+      }else{
+        document.getElementById("status").textContent = "No match for ID: " + id;
+        return;
       }
+      document.getElementById("status").style.display = "none";
+      document.getElementById("content").style.display = "block";
+      document.getElementById("title").textContent = rec.Name ? rec.Name : "Cigar Reveal";
+      const fields = document.getElementById("fields");
+      const keys = ["Batch","Brand","Name","Vitola","Origin","Wrapper","Binder","Filler","Strength","Flavour","Notes","Reveal Link","ID"];
+      keys.forEach(k=>{
+        if(rec[k] && String(rec[k]).trim()){
+          const label = document.createElement("div"); label.className="label"; label.textContent = k;
+          const val = document.createElement("div"); val.className="val";
+          if(k === "Reveal Link"){
+            const a = document.createElement("a"); a.href = rec[k]; a.textContent = "Open"; a.target = "_blank"; val.appendChild(a);
+          } else {
+            val.textContent = rec[k];
+          }
+          fields.appendChild(label); fields.appendChild(val);
+        }
+      });
+      const qrImg = document.getElementById("qr");
+      qrImg.src = "https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=" + encodeURIComponent(rec.QR_URL);
     }
-
-    function render(d){
-      $("batch").textContent   = d?.batch ? `Batch: ${d.batch}` : "Batch: —";
-      $("name").textContent    = d?.name ?? "Scan a band to reveal";
-      $("origin").textContent  = d?.origin ?? "—";
-      $("wrapper").textContent = d?.wrapper ?? "—";
-      $("binder").textContent  = d?.binder ?? "—";
-      $("filler").textContent  = d?.filler ?? "—";
-      $("strength").textContent= d?.strength ?? "—";
-      $("flavour").textContent = d?.flavour ?? "—";
-      $("vitolaRow").innerHTML = d?.vitola ? `<span class="tag">${d.vitola}</span>` : "";
-
-      // Restore saved notes/rating for this id
-      const saved = JSON.parse(localStorage.getItem(`cigar-${id}`) || "{}");
-      if (saved.notes) $("notes").value = saved.notes;
-      if (saved.rating) highlightStars(saved.rating);
-    }
-
-    loadAndRender();
+    run();
   </script>
 </body>
 </html>
