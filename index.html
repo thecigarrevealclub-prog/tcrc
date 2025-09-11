@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Cigar Reveal</title></head>
+<body><h1>Cigar Reveal</h1>
+<div id="status">Loading...</div>
+<div id="content" style="display:none">
+  <div id="fields"></div>
+  <img id="qr" alt="QR"/>
+</div>
+<script>
+function qs(k){return new URL(window.location.href).searchParams.get(k);}
+async function run(){
+ const id=qs("id");
+ const data=await fetch("./items_v2.json").then(r=>r.json());
+ if(!id||!data[id]){document.getElementById("status").textContent="Invalid or missing ID";return;}
+ const rec=data[id];
+ document.getElementById("status").style.display="none";
+ document.getElementById("content").style.display="block";
+ const f=document.getElementById("fields");
+ for(const [k,v] of Object.entries(rec)){if(v){const d=document.createElement("div");d.textContent=k+": "+v;f.appendChild(d);}}
+ document.getElementById("qr").src="https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl="+encodeURIComponent(rec.QR_URL);
+}
+run();
+</script></body></html>
