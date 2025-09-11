@@ -50,6 +50,9 @@
     .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);text-decoration:none;color:var(--text);background:var(--chip);cursor:pointer}
     .btn.primary{background:linear-gradient(180deg,#e8d48a,var(--brand));color:#111;border-color:#c6a531}
     .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);padding:10px 14px;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,.18)}
+    .error{color:#ff9595}
+    .hint{margin-top:8px}
+    code{background:#00000033;padding:2px 6px;border-radius:6px}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
@@ -63,7 +66,10 @@
       <div style="flex:1"></div>
     </div>
 
-    <div id="status" class="panel muted">Loading…</div>
+    <div id="status" class="panel">
+      <div><strong>Loading…</strong></div>
+      <div class="muted small hint">If this takes more than a few seconds, the data file may be missing.</div>
+    </div>
 
     <div id="detail" class="panel hidden">
       <div class="grid">
@@ -119,10 +125,9 @@
               </div>
             </div>
             <div class="actions">
-              <button class="btn primary" id="submit">Send feedback</button>
-              <button class="btn" id="copyJson">Copy JSON</button>
+              <button class="btn" id="copyJson">Copy feedback</button>
             </div>
-            <div class="muted small" style="margin-top:8px">Your feedback is used to improve future selections.</div>
+            <div class="muted small" style="margin-top:8px">No email is sent from this page. Use “Copy feedback” if needed.</div>
           </div>
         </div>
         <div>
@@ -136,124 +141,109 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    const EMAIL = "you@example.com"; // replace with your address or switch to EmailJS later
     const JSON_CANDIDATES = ["./items_v2.json","./items.json"];
     function qs(k){return new URL(window.location.href).searchParams.get(k);}
     function showToast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.remove("hidden"); setTimeout(()=>t.classList.add("hidden"),1800); }
     function nice(v){ return (v && String(v).trim()) ? v : "Not specified"; }
 
     async function loadData(){
+      const errors=[];
       for(const url of JSON_CANDIDATES){
-        try{ const r=await fetch(url,{cache:"no-store"}); if(r.ok){ return await r.json(); } }catch(e){}
+        try{ const r=await fetch(url,{cache:"no-store"}); if(r.ok){ return await r.json(); } else { errors.push(url+\" → \"+r.status); } }
+        catch(e){ errors.push(url+\" → fetch error\"); }
       }
-      throw new Error("Could not load items JSON. Upload items_v2.json or items.json next to index.html.");
+      const s=document.getElementById(\"status\"); s.innerHTML = `<div class="error"><strong>Data file not found.</strong></div>
+      <div class="hint">Put <code>items_v2.json</code> <em>or</em> <code>items.json</code> in the <strong>same folder</strong> as <code>index.html</code> (repo root or /docs — whichever your GitHub Pages setting uses).</div>
+      <div class="hint small muted">Tried: ${errors.join(\"; \")}</div>`;
+      throw new Error(\"missing json\");
     }
 
     function field(k,v){
-      const L=document.createElement("div"); L.className="label"; L.textContent=k;
-      const V=document.createElement("div"); V.className="value"; V.textContent=v;
+      const L=document.createElement(\"div\"); L.className=\"label\"; L.textContent=k;
+      const V=document.createElement(\"div\"); V.className=\"value\"; V.textContent=v;
       return [L,V];
     }
 
     function renderStars(containerKey, initial=0){
-      const wrap = document.querySelector(`.stars[data-stars="${containerKey}"]`);
-      wrap.innerHTML="";
+      const wrap = document.querySelector(`.stars[data-stars=\"${containerKey}\"]`);
+      wrap.innerHTML=\"\";
       for(let i=1;i<=5;i++){
-        const s=document.createElement("span"); s.className="star"; s.textContent="★"; s.dataset.value=String(i);
-        s.addEventListener("click", ()=> setStarValue(containerKey, i));
+        const s=document.createElement(\"span\"); s.className=\"star\"; s.textContent=\"★\"; s.dataset.value=String(i);
+        s.addEventListener(\"click\", ()=> setStarValue(containerKey, i));
         wrap.appendChild(s);
       }
       setStarValue(containerKey, initial);
     }
     function setStarValue(key, val){
-      const wrap=document.querySelector(`.stars[data-stars="${key}"]`);
-      wrap.querySelectorAll(".star").forEach(el=>{
-        el.dataset.active = Number(el.dataset.value) <= val ? "true":"false";
+      const wrap=document.querySelector(`.stars[data-stars=\"${key}\"]`);
+      wrap.querySelectorAll(\".star\").forEach(el=>{
+        el.dataset.active = Number(el.dataset.value) <= val ? \"true\":\"false\";
       });
       wrap.dataset.value = String(val);
     }
     function getStarValue(key){
-      const wrap=document.querySelector(`.stars[data-stars="${key}"]`);
+      const wrap=document.querySelector(`.stars[data-stars=\"${key}\"]`);
       return Number(wrap?.dataset?.value || 0);
     }
     function bindYesNo(key){
-      document.querySelectorAll(`.chip[data-yn="${key}"]`).forEach(el=>{
-        el.addEventListener("click", ()=>{
-          document.querySelectorAll(`.chip[data-yn="${key}"]`).forEach(c=>c.dataset.on="false");
-          el.dataset.on="true";
+      document.querySelectorAll(`.chip[data-yn=\"${key}\"]`).forEach(el=>{
+        el.addEventListener(\"click\", ()=>{
+          document.querySelectorAll(`.chip[data-yn=\"${key}\"]`).forEach(c=>c.dataset.on=\"false\"); el.dataset.on=\"true\";
         });
       });
     }
     function getYesNo(key){
-      const on = document.querySelector(`.chip[data-yn="${key}"][data-on="true"]`);
-      return on ? on.dataset.value : "";
+      const on = document.querySelector(`.chip[data-yn=\"${key}\"][data-on=\"true\"]`);
+      return on ? on.dataset.value : \"\";
     }
 
     function exportPayload(id, rec){
       return {
-        id, brand: rec.Brand||"", name: rec.Name||"", vitola: rec.Vitola||"",
+        id, brand: rec.Brand||\"\", name: rec.Name||\"\", vitola: rec.Vitola||\"\",
         ratings:{
-          flavour_profile: getStarValue("flavour_profile"),
-          appearance: getStarValue("appearance"),
-          draw: getStarValue("draw"),
-          construction: getStarValue("construction"),
-          overall: getStarValue("overall"),
+          flavour_profile: getStarValue(\"flavour_profile\"),
+          appearance: getStarValue(\"appearance\"),
+          draw: getStarValue(\"draw\"),
+          construction: getStarValue(\"construction\"),
+          overall: getStarValue(\"overall\"),
         },
         questions:{
-          order_again: getYesNo("order_again"),
-          gift_smoke: getYesNo("gift_smoke"),
-          guessed_flavour: getYesNo("guessed_flavour"),
+          order_again: getYesNo(\"order_again\"),
+          gift_smoke: getYesNo(\"gift_smoke\"),
+          guessed_flavour: getYesNo(\"guessed_flavour\"),
         },
-        feedback: (document.getElementById("feedbackBox").value||"").trim(),
+        feedback: (document.getElementById(\"feedbackBox\").value||\"\").trim(),
         timestamp: new Date().toISOString()
       };
-    }
-
-    function sendEmail(payload){
-      const subject = encodeURIComponent(`CRC Rating: ${payload.id} — ${payload.name}`);
-      const body = encodeURIComponent(JSON.stringify(payload, null, 2));
-      window.location.href = `mailto:${encodeURIComponent(EMAIL)}?subject=${subject}&body=${body}`;
     }
 
     (async function(){
       try{
         const data = await loadData();
-        const id = qs("id");
-        if(!id){ throw new Error("Missing ID in the URL. Open this page from a valid QR link."); }
+        const id = qs(\"id\");
+        if(!id){ const s=document.getElementById(\"status\"); s.innerHTML = '<div class=\"error\"><strong>Missing ID in URL.</strong></div><div class=\"hint\">Open the page via the QR link like <code>?id=YOUR_ID</code>.</div>'; return; }
         const rec = data[id];
-        if(!rec){ throw new Error("No match for this code. Please check the QR or contact support."); }
+        if(!rec){ const s=document.getElementById(\"status\"); s.innerHTML = '<div class=\"error\"><strong>No match for this code.</strong></div><div class=\"hint\">Check the ID value in your spreadsheet and JSON.</div>'; return; }
 
-        document.getElementById("status").classList.add("hidden");
-        document.getElementById("detail").classList.remove("hidden");
+        document.getElementById(\"status\").classList.add(\"hidden\"); document.getElementById(\"detail\").classList.remove(\"hidden\");
 
-        const fields=document.getElementById("fields");
-        const keys=["Batch","Brand","Name","Vitola","Origin","Wrapper","Binder","Filler","Strength","Flavour","Notes","ID"];
+        const fields=document.getElementById(\"fields\"); const keys=[\"Batch\",\"Brand\",\"Name\",\"Vitola\",\"Origin\",\"Wrapper\",\"Binder\",\"Filler\",\"Strength\",\"Flavour\",\"Notes\",\"ID\"];
         keys.forEach(k=>{ const [L,V]=field(k,nice(rec[k])); fields.appendChild(L); fields.appendChild(V); });
 
-        // QR with CDN library
-        const cv = document.getElementById("qrCanvas");
-        QRCode.toCanvas(cv, rec.QR_URL || window.location.href, { width: 320 }, function (error) {
-          if (error) console.error(error);
-        });
+        // QR
+        QRCode.toCanvas(document.getElementById(\"qrCanvas\"), rec.QR_URL || window.location.href, { width: 320 }, function (error) { if (error) console.error(error); });
 
-        // Form setup
-        ["flavour_profile","appearance","draw","construction","overall"].forEach(k=> renderStars(k,0));
-        ["order_again","gift_smoke","guessed_flavour"].forEach(bindYesNo);
+        // Form
+        [\"flavour_profile\",\"appearance\",\"draw\",\"construction\",\"overall\"].forEach(k=> renderStars(k,0));
+        [\"order_again\",\"gift_smoke\",\"guessed_flavour\"].forEach(bindYesNo);
 
-        document.getElementById("copyJson").onclick = async ()=>{
+        // Copy button
+        document.getElementById(\"copyJson\").onclick = async ()=>{
           const payload = exportPayload(id, rec);
           await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
-          showToast("Copied JSON");
+          showToast(\"Copied\");
         };
-        document.getElementById("submit").onclick = ()=>{
-          const payload = exportPayload(id, rec);
-          sendEmail(payload);
-        };
-
-      }catch(e){
-        const s=document.getElementById("status");
-        s.textContent = e.message;
-      }
+      }catch(e){ /* already handled */ }
     })();
   </script>
 </body>
