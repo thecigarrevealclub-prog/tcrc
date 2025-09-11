@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cigar Reveal</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;max-width:900px;margin:2rem auto;padding:1rem}
+    h1{margin:.2rem 0}
+    .muted{color:#666}
+    .card{border:1px solid #ddd;border-radius:12px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,.05);margin:.75rem 0}
+    .grid{display:grid;grid-template-columns:160px 1fr;gap:8px}
+    .label{color:#666}
+    .val{font-weight:600;word-break:break-word}
+    .qr{margin-top:1rem}
+    input[type="search"]{width:100%;padding:.6rem;border:1px solid #ccc;border-radius:8px}
+    a.button{display:inline-block;padding:.5rem .8rem;border:1px solid #ccc;border-radius:8px;text-decoration:none;margin-right:.5rem}
+  </style>
+</head>
+<body>
+  <h1>Cigar Reveal</h1>
+  <div id="status" class="muted">Loading…</div>
+
+  <div id="detail" class="card" style="display:none">
+    <div class="grid" id="fields"></div>
+    <div class="qr"><img id="qr" alt="QR code" width="220" height="220"/></div>
+    <p><a class="button" href="./">Back to list</a></p>
+  </div>
+
+  <div id="list" style="display:none">
+    <input id="q" type="search" placeholder="Search by ID, Name, Brand, Vitola…" />
+    <div id="items"></div>
+  </div>
+
+  <script>
+    const JSON_CANDIDATES = ["./items_v2.json", "./items.json"];
+    function qs(key){ return new URL(window.location.href).searchParams.get(key); }
+
+    async function loadData(){
+      for(const url of JSON_CANDIDATES){
+        try{
+          const r = await fetch(url, {cache:"no-store"});
+          if(r.ok){
+            const data = await r.json();
+            return {data, url};
+          }
+        }catch(e){ /* try next */ }
+      }
+      throw new Error("Could not load items_v2.json or items.json from site root.");
+    }
+
+    function renderDetail(rec){
+      document.getElementById("status").style.display="none";
+      document.getElementById("detail").style.display="block";
+      const fields = document.getElementById("fields");
+      fields.innerHTML = "";
+      const keys = ["Batch","Brand","Name","Vitola","Origin","Wrapper","Binder","Filler","Strength","Flavour","Notes","Reveal Link","ID"];
+      keys.forEach(k=>{
+        if(rec[k] && String(rec[k]).trim()){
+          const l = document.createElement("div"); l.className="label"; l.textContent = k;
+          const v = document.createElement("div"); v.className="val";
+          if(k==="Reveal Link"){
+            const a=document.createElement("a"); a.href=rec[k]; a.textContent=rec[k]; a.target="_blank"; v.appendChild(a);
+          }else{
+            v.textContent = rec[k];
+          }
+          fields.appendChild(l); fields.appendChild(v);
+        }
+      });
+      const qr = "https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl="+encodeURIComponent(rec.QR_URL||"");
+      document.getElementById("qr").src = qr;
+    }
+
+    function renderList(all){
+      document.getElementById("status").style.display="none";
+      document.getElementById("list").style.display="block";
+      const items = document.getElementById("items");
+      const q = document.getElementById("q");
+      function card([id, rec]){
+        const div = document.createElement("div"); div.className="card";
+        const title = document.createElement("div"); title.innerHTML = "<strong>"+(rec.Name||"(No name)")+"</strong> — "+(rec.Brand||"")+(rec.Vitola?", "+rec.Vitola:"");
+        const meta = document.createElement("div"); meta.className="muted"; meta.textContent = "ID: "+id;
+        const link = document.createElement("a"); link.className="button"; link.textContent="Open"; link.href = "./?id="+encodeURIComponent(id);
+        div.appendChild(title); div.appendChild(meta); div.appendChild(link);
+        return div;
+      }
+      function update(){
+        const term = q.value.toLowerCase();
+        items.innerHTML = "";
+        Object.entries(all).filter(([id,rec])=>{
+          const hay = [id, rec.Name, rec.Brand, rec.Vitola].join(" ").toLowerCase();
+          return hay.includes(term);
+        }).slice(0,300).forEach(entry=> items.appendChild(card(entry)));
+      }
+      q.addEventListener("input", update);
+      update();
+    }
+
+    (async function(){
+      try{
+        const {data} = await loadData();
+        const id = qs("id");
+        if(id){
+          const rec = data[id];
+          if(!rec){
+            document.getElementById("status").textContent = "No match for ID: "+id+" — check your spreadsheet ID and items.json key.";
+            return;
+          }
+          renderDetail(rec);
+        }else{
+          renderList(data);
+        }
+      }catch(e){
+        document.getElementById("status").textContent = e.message + " Make sure the file is uploaded to the root of the repo and named correctly.";
+      }
+    })();
+  </script>
+</body>
+</html>
