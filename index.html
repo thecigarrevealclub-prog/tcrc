@@ -30,12 +30,9 @@
     .value{font-weight:600;word-break:break-word}
     .qrbox{border:1px dashed var(--border);border-radius:16px;padding:16px;display:grid;place-items:center;min-height:280px;background:var(--panel-2)}
     img{max-width:100%;height:auto}
-    input[type="search"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
     a{color:var(--brand)}
     .hidden{display:none}
     .small{font-size:.9rem}
-
-    /* Rating form */
     .form{margin-top:18px;border-top:1px solid var(--border);padding-top:18px}
     .form h2{font-size:1.15rem;margin:.3rem 0 1rem}
     .stars{display:flex;gap:6px;align-items:center}
@@ -54,6 +51,7 @@
     .btn.primary{background:linear-gradient(180deg,#e8d48a,var(--brand));color:#111;border-color:#c6a531}
     .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);padding:10px 14px;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,.18)}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -129,9 +127,7 @@
         </div>
         <div>
           <div class="small muted" style="margin-bottom:8px">QR code</div>
-          <div class="qrbox">
-            <div id="qr"></div>
-          </div>
+          <div class="qrbox"><canvas id="qrCanvas" width="320" height="320"></canvas></div>
         </div>
       </div>
     </div>
@@ -140,19 +136,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    // ---------- CONFIGURE EMAIL SENDING ----------
-    // Option A: EmailJS (recommended for GitHub Pages)
-    // Create a free account at emailjs.com, then set:
-    const EMAILJS = {
-      enabled: false,                 // set to true after configuring the three values below
-      service_id: "YOUR_SERVICE_ID",
-      template_id: "YOUR_TEMPLATE_ID",
-      public_key: "YOUR_PUBLIC_KEY",
-      to_email: "you@example.com"     // where you want to receive feedback
-    };
-    // Option B: If EMAILJS.enabled=false, we'll open a mailto: draft as a fallback.
-
-    // ---------- Utilities ----------
+    const EMAIL = "you@example.com"; // replace with your address or switch to EmailJS later
     const JSON_CANDIDATES = ["./items_v2.json","./items.json"];
     function qs(k){return new URL(window.location.href).searchParams.get(k);}
     function showToast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.remove("hidden"); setTimeout(()=>t.classList.add("hidden"),1800); }
@@ -160,9 +144,9 @@
 
     async function loadData(){
       for(const url of JSON_CANDIDATES){
-        try{ const r=await fetch(url,{cache:"no-store"}); if(r.ok){ return {data:await r.json(), url}; } }catch(e){}
+        try{ const r=await fetch(url,{cache:"no-store"}); if(r.ok){ return await r.json(); } }catch(e){}
       }
-      throw new Error("Could not load items_v2.json or items.json. Upload one of them next to index.html.");
+      throw new Error("Could not load items JSON. Upload items_v2.json or items.json next to index.html.");
     }
 
     function field(k,v){
@@ -171,16 +155,6 @@
       return [L,V];
     }
 
-    // ---------- Inline QR generator (no external API) ----------
-    // Minimal QRCode implementation (qrcode.js by Kazuhiko Arase, MIT) trimmed for size
-    /*! qrcode.js v1.0.0 (MIT) */
-    (function(){function p(a){this.mode=c.MODE_8BIT_BYTE;this.data=a}
-    function q(a,c){this.typeNumber=a;this.errorCorrectLevel=c;this.modules=null;this.moduleCount=0;this.dataCache=null;this.dataList=[]}
-    var c={PAD0:236,PAD1:17,MODE_8BIT_BYTE:4,ErrorCorrectLevel:{L:1,M:0,Q:3,H:2}},r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50]];p.prototype={getLength:function(){return this.data.length},write:function(a){for(var c=0;c<this.data.length;c++){var b=this.data.charCodeAt(c);a.put(b,8)}}};
-    q.prototype={addData:function(a){this.dataList.push(new p(a));this.dataCache=null},isDark:function(a,b){if(this.modules[a][b]!=null)return this.modules[a][b];else throw Error(a+","+b)},getModuleCount:function(){return this.moduleCount},make:function(){this.typeNumber=4;this.moduleCount=33;this.modules=Array(this.moduleCount);for(var a=0;a<this.moduleCount;a++){this.modules[a]=Array(this.moduleCount);for(var b=0;b<this.moduleCount;b++)this.modules[a][b]=null}this.setupPos();this.mapData(this.createData())},setupPos:function(){for(var a=0;a<3;a++)for(var b=0;b<3;b++){var d=r[1][a];var e=r[1][a];}for(var a=0;a<r[1].length;a++){var b=r[1][a];this.setupPosPattern(b,6);this.setupPosPattern(6,b)}this.setupPosPattern(6,6)},setupPosPattern:function(a,b){for(var d=-1;d<=7;d++)if(0<=a+d&&a+d<this.moduleCount)for(var e=-1;e<=7;e++)0<=b+e&&b+e<this.moduleCount&&(this.modules[a+d][b+e]=0<=d&&d<=6&&(0==e||6==e)||0<=e&&e<=6&&(0==d||6==d)||2<=d&&d<=4&&2<=e&&e<=4)},mapData:function(a){for(var b=0,d=this.moduleCount-1,e=7,f=0;d>0;d-=2){6==d&&d--;for(;;){for(var g=0;g<2;g++)this.modules[d-g][b]==null&&(this.modules[d-g][b]=!!(a[f>>>3]&1<<(7-(f&7))),f++);if(b+=e,-1==b||this.moduleCount<=b){b+=-e;e=-e;break}}}},createData:function(){for(var a=[],b=0;b<this.dataList.length;b++){var d=this.dataList[b];a.push(4);a.push(d.getLength());for(var e=0;e<d.getLength();e++)a.push(d.data.charCodeAt(e))}for(a.push(c.PAD0),a.push(c.PAD1);16<a.length;)a.pop();return a}};
-    function QRImage(el, text, size){var qr=new q(4,c.ErrorCorrectLevel.M);qr.addData(text);qr.make();var n=qr.getModuleCount(),s=size/n,cv=document.createElement("canvas");cv.width=cv.height=size;var ctx=cv.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,size,size);ctx.fillStyle="#000";for(var r0=0;r0<n;r0++)for(var col=0;col<n;col++)qr.isDark(col,r0)&&ctx.fillRect(Math.round(col*s),Math.round(r0*s),Math.ceil(s),Math.ceil(s));el.innerHTML="";el.appendChild(cv)}
-
-    // ---------- Ratings helpers ----------
     function renderStars(containerKey, initial=0){
       const wrap = document.querySelector(`.stars[data-stars="${containerKey}"]`);
       wrap.innerHTML="";
@@ -214,8 +188,9 @@
       const on = document.querySelector(`.chip[data-yn="${key}"][data-on="true"]`);
       return on ? on.dataset.value : "";
     }
+
     function exportPayload(id, rec){
-      const payload = {
+      return {
         id, brand: rec.Brand||"", name: rec.Name||"", vitola: rec.Vitola||"",
         ratings:{
           flavour_profile: getStarValue("flavour_profile"),
@@ -232,77 +207,47 @@
         feedback: (document.getElementById("feedbackBox").value||"").trim(),
         timestamp: new Date().toISOString()
       };
-      return payload;
     }
 
-    async function sendEmail(payload){
-      if(EMAILJS.enabled){
-        // EmailJS client library via CDN (lightweight); inject once
-        if(!window.emailjs){
-          await new Promise((res,rej)=>{
-            const s=document.createElement("script");
-            s.src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js";
-            s.onload=res; s.onerror=rej; document.head.appendChild(s);
-          });
-          emailjs.init(EMAILJS.public_key);
-        }
-        const params = {
-          to_email: EMAILJS.to_email,
-          subject: `CRC Rating: ${payload.id} — ${payload.name}`,
-          message: JSON.stringify(payload, null, 2)
-        };
-        await emailjs.send(EMAILJS.service_id, EMAILJS.template_id, params);
-        return "Email sent";
-      }else{
-        // Fallback: open a mailto draft
-        const subject = encodeURIComponent(`CRC Rating: ${payload.id} — ${payload.name}`);
-        const body = encodeURIComponent(JSON.stringify(payload, null, 2));
-        const to = "you@example.com"; // replace with your email
-        window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
-        return "Opened mail app";
-      }
+    function sendEmail(payload){
+      const subject = encodeURIComponent(`CRC Rating: ${payload.id} — ${payload.name}`);
+      const body = encodeURIComponent(JSON.stringify(payload, null, 2));
+      window.location.href = `mailto:${encodeURIComponent(EMAIL)}?subject=${subject}&body=${body}`;
     }
 
     (async function(){
       try{
-        const {data}=await loadData();
-        const id=qs("id");
-        if(!id) throw new Error("Missing ID. Please scan the correct QR link.");
-        const rec=data[id];
-        if(!rec) throw new Error("No match for this code. Please contact support.");
+        const data = await loadData();
+        const id = qs("id");
+        if(!id){ throw new Error("Missing ID in the URL. Open this page from a valid QR link."); }
+        const rec = data[id];
+        if(!rec){ throw new Error("No match for this code. Please check the QR or contact support."); }
 
-        // Show detail view
         document.getElementById("status").classList.add("hidden");
         document.getElementById("detail").classList.remove("hidden");
 
-        // Fields: exclude "Reveal Link"
         const fields=document.getElementById("fields");
-        fields.innerHTML="";
         const keys=["Batch","Brand","Name","Vitola","Origin","Wrapper","Binder","Filler","Strength","Flavour","Notes","ID"];
         keys.forEach(k=>{ const [L,V]=field(k,nice(rec[k])); fields.appendChild(L); fields.appendChild(V); });
 
-        // QR generate from QR_URL (no external API)
-        const target = document.getElementById("qr");
-        QRImage(target, rec.QR_URL||"", 320);
+        // QR with CDN library
+        const cv = document.getElementById("qrCanvas");
+        QRCode.toCanvas(cv, rec.QR_URL || window.location.href, { width: 320 }, function (error) {
+          if (error) console.error(error);
+        });
 
-        // Stars & toggles
+        // Form setup
         ["flavour_profile","appearance","draw","construction","overall"].forEach(k=> renderStars(k,0));
         ["order_again","gift_smoke","guessed_flavour"].forEach(bindYesNo);
 
-        // Actions
         document.getElementById("copyJson").onclick = async ()=>{
           const payload = exportPayload(id, rec);
           await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
           showToast("Copied JSON");
         };
-        document.getElementById("submit").onclick = async ()=>{
+        document.getElementById("submit").onclick = ()=>{
           const payload = exportPayload(id, rec);
-          try{
-            const msg = await sendEmail(payload);
-            showToast(msg);
-          }catch(e){
-            showToast("Could not send. Try again.");
-          }
+          sendEmail(payload);
         };
 
       }catch(e){
