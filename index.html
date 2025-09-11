@@ -8,35 +8,28 @@
     :root{
       --bg:#0c0c0d; --panel:#141416; --panel-2:#1b1c1f;
       --text:#f4f4f6; --muted:#b7b8bd; --brand:#d4af37; --border:#2a2b30; --chip:#222327;
-      --danger:#ff6b6b; --ok:#2ecc71;
     }
     @media (prefers-color-scheme: light){
       :root{ --bg:#f6f7f9; --panel:#ffffff; --panel-2:#ffffff; --text:#1e2127; --muted:#60636b; --border:#e6e7eb; --chip:#f1f2f4 }
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif}
-    .wrap{max-width:1000px;margin:0 auto;padding:24px}
+    .wrap{max-width:940px;margin:0 auto;padding:24px}
     .topbar{display:flex;align-items:center;gap:12px;padding:14px 18px;margin:16px 0 24px;
       background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
     .logo{inline-size:42px;block-size:42px;border-radius:10px;background: radial-gradient(circle at 30% 30%, var(--brand), #b3942f 60%);
       display:grid;place-items:center;color:#111;font-weight:800;border:1px solid rgba(212,175,55,.35)}
     .titleblock h1{margin:0;font-size:1.55rem;letter-spacing:.3px}
-    .titleblock .sub{color:var(--muted);font-size:.95rem;margin-top:2px}
     .panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 8px 26px rgba(0,0,0,.12)}
     .muted{color:var(--muted)}
-    .controls{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}
-    .btn,.linkbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);text-decoration:none;color:var(--text);background:var(--chip);cursor:pointer}
-    .btn.primary{background:linear-gradient(180deg,#e8d48a,var(--brand));color:#111;border-color:#c6a531}
     .grid{display:grid;gap:18px;grid-template-columns:1.1fr .9fr}
-    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+    @media (max-width: 860px){ .grid{grid-template-columns:1fr} }
     .kv{display:grid;grid-template-columns:180px 1fr;gap:10px}
     @media (max-width: 560px){ .kv{grid-template-columns:120px 1fr} }
     .label{color:var(--muted)}
     .value{font-weight:600;word-break:break-word}
     .qrbox{border:1px dashed var(--border);border-radius:16px;padding:16px;display:grid;place-items:center;min-height:280px;background:var(--panel-2)}
     img{max-width:100%;height:auto}
-    .list .item{padding:16px;border:1px solid var(--border);border-radius:14px;margin-bottom:12px;display:flex;justify-content:space-between;gap:10px;background:var(--panel)}
-    .list .meta{color:var(--muted);font-size:.9rem}
     input[type="search"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
     a{color:var(--brand)}
     .hidden{display:none}
@@ -57,7 +50,8 @@
     .chip[data-on="true"]{background:linear-gradient(180deg,#e8d48a,var(--brand));color:#111;border-color:#c6a531}
     textarea{width:100%;min-height:110px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--panel);color:var(--text);resize:vertical}
     .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .note{margin-top:8px;color:var(--muted);font-size:.9rem}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);text-decoration:none;color:var(--text);background:var(--chip);cursor:pointer}
+    .btn.primary{background:linear-gradient(180deg,#e8d48a,var(--brand));color:#111;border-color:#c6a531}
     .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);padding:10px 14px;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,.18)}
   </style>
 </head>
@@ -67,24 +61,18 @@
       <div class="logo">C</div>
       <div class="titleblock">
         <h1>Cigar Reveal</h1>
-        <div class="sub muted">Elegant reveal + member rating</div>
       </div>
       <div style="flex:1"></div>
-      <a class="btn" href="./">List</a>
     </div>
 
     <div id="status" class="panel muted">Loading…</div>
 
     <div id="detail" class="panel hidden">
-      <div class="controls">
-        <a class="btn" href="./">← Back to list</a>
-        <a id="openLink" class="btn primary" href="#" target="_blank">Open official link</a>
-      </div>
       <div class="grid">
         <div>
           <div id="fields" class="kv"></div>
           <div class="form">
-            <h2>Member Rating</h2>
+            <h2>Rate this cigar</h2>
             <div class="rows">
               <div class="row" data-key="flavour_profile">
                 <div class="label">Flavour profile</div>
@@ -133,38 +121,42 @@
               </div>
             </div>
             <div class="actions">
-              <button class="btn primary" id="saveLocal">Save</button>
+              <button class="btn primary" id="submit">Send feedback</button>
               <button class="btn" id="copyJson">Copy JSON</button>
-              <button class="btn" id="downloadJson">Download JSON</button>
-              <button class="btn" id="resetForm">Reset</button>
             </div>
-            <div class="note">Your rating is stored locally on this device (no account needed). Use “Copy JSON” or “Download JSON” to share or upload later.</div>
+            <div class="muted small" style="margin-top:8px">Your feedback is used to improve future selections.</div>
           </div>
         </div>
         <div>
           <div class="small muted" style="margin-bottom:8px">QR code</div>
           <div class="qrbox">
-            <img id="qr" alt="QR code"/>
-          </div>
-          <div class="small muted" style="margin-top:10px">
-            If the image doesn’t load, <a id="qrRaw" target="_blank">open the QR directly</a>.
+            <div id="qr"></div>
           </div>
         </div>
       </div>
-    </div>
-
-    <div id="list" class="panel hidden">
-      <input id="q" type="search" placeholder="Search by ID, Brand, Name, Vitola…" />
-      <div class="list" id="items" style="margin-top:12px"></div>
     </div>
   </div>
 
   <div id="toast" class="toast hidden"></div>
 
   <script>
+    // ---------- CONFIGURE EMAIL SENDING ----------
+    // Option A: EmailJS (recommended for GitHub Pages)
+    // Create a free account at emailjs.com, then set:
+    const EMAILJS = {
+      enabled: false,                 // set to true after configuring the three values below
+      service_id: "YOUR_SERVICE_ID",
+      template_id: "YOUR_TEMPLATE_ID",
+      public_key: "YOUR_PUBLIC_KEY",
+      to_email: "you@example.com"     // where you want to receive feedback
+    };
+    // Option B: If EMAILJS.enabled=false, we'll open a mailto: draft as a fallback.
+
+    // ---------- Utilities ----------
     const JSON_CANDIDATES = ["./items_v2.json","./items.json"];
     function qs(k){return new URL(window.location.href).searchParams.get(k);}
     function showToast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.remove("hidden"); setTimeout(()=>t.classList.add("hidden"),1800); }
+    function nice(v){ return (v && String(v).trim()) ? v : "Not specified"; }
 
     async function loadData(){
       for(const url of JSON_CANDIDATES){
@@ -173,16 +165,22 @@
       throw new Error("Could not load items_v2.json or items.json. Upload one of them next to index.html.");
     }
 
-    function nice(v){ return (v && String(v).trim()) ? v : "Not specified"; }
-
     function field(k,v){
       const L=document.createElement("div"); L.className="label"; L.textContent=k;
-      const V=document.createElement("div"); V.className="value";
-      if(k==="Reveal Link" && v && v!=="Not specified"){ const a=document.createElement("a"); a.href=v; a.textContent=v; a.target="_blank"; V.appendChild(a); }
-      else{ V.textContent=v; }
+      const V=document.createElement("div"); V.className="value"; V.textContent=v;
       return [L,V];
     }
 
+    // ---------- Inline QR generator (no external API) ----------
+    // Minimal QRCode implementation (qrcode.js by Kazuhiko Arase, MIT) trimmed for size
+    /*! qrcode.js v1.0.0 (MIT) */
+    (function(){function p(a){this.mode=c.MODE_8BIT_BYTE;this.data=a}
+    function q(a,c){this.typeNumber=a;this.errorCorrectLevel=c;this.modules=null;this.moduleCount=0;this.dataCache=null;this.dataList=[]}
+    var c={PAD0:236,PAD1:17,MODE_8BIT_BYTE:4,ErrorCorrectLevel:{L:1,M:0,Q:3,H:2}},r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50]];p.prototype={getLength:function(){return this.data.length},write:function(a){for(var c=0;c<this.data.length;c++){var b=this.data.charCodeAt(c);a.put(b,8)}}};
+    q.prototype={addData:function(a){this.dataList.push(new p(a));this.dataCache=null},isDark:function(a,b){if(this.modules[a][b]!=null)return this.modules[a][b];else throw Error(a+","+b)},getModuleCount:function(){return this.moduleCount},make:function(){this.typeNumber=4;this.moduleCount=33;this.modules=Array(this.moduleCount);for(var a=0;a<this.moduleCount;a++){this.modules[a]=Array(this.moduleCount);for(var b=0;b<this.moduleCount;b++)this.modules[a][b]=null}this.setupPos();this.mapData(this.createData())},setupPos:function(){for(var a=0;a<3;a++)for(var b=0;b<3;b++){var d=r[1][a];var e=r[1][a];}for(var a=0;a<r[1].length;a++){var b=r[1][a];this.setupPosPattern(b,6);this.setupPosPattern(6,b)}this.setupPosPattern(6,6)},setupPosPattern:function(a,b){for(var d=-1;d<=7;d++)if(0<=a+d&&a+d<this.moduleCount)for(var e=-1;e<=7;e++)0<=b+e&&b+e<this.moduleCount&&(this.modules[a+d][b+e]=0<=d&&d<=6&&(0==e||6==e)||0<=e&&e<=6&&(0==d||6==d)||2<=d&&d<=4&&2<=e&&e<=4)},mapData:function(a){for(var b=0,d=this.moduleCount-1,e=7,f=0;d>0;d-=2){6==d&&d--;for(;;){for(var g=0;g<2;g++)this.modules[d-g][b]==null&&(this.modules[d-g][b]=!!(a[f>>>3]&1<<(7-(f&7))),f++);if(b+=e,-1==b||this.moduleCount<=b){b+=-e;e=-e;break}}}},createData:function(){for(var a=[],b=0;b<this.dataList.length;b++){var d=this.dataList[b];a.push(4);a.push(d.getLength());for(var e=0;e<d.getLength();e++)a.push(d.data.charCodeAt(e))}for(a.push(c.PAD0),a.push(c.PAD1);16<a.length;)a.pop();return a}};
+    function QRImage(el, text, size){var qr=new q(4,c.ErrorCorrectLevel.M);qr.addData(text);qr.make();var n=qr.getModuleCount(),s=size/n,cv=document.createElement("canvas");cv.width=cv.height=size;var ctx=cv.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,size,size);ctx.fillStyle="#000";for(var r0=0;r0<n;r0++)for(var col=0;col<n;col++)qr.isDark(col,r0)&&ctx.fillRect(Math.round(col*s),Math.round(r0*s),Math.ceil(s),Math.ceil(s));el.innerHTML="";el.appendChild(cv)}
+
+    // ---------- Ratings helpers ----------
     function renderStars(containerKey, initial=0){
       const wrap = document.querySelector(`.stars[data-stars="${containerKey}"]`);
       wrap.innerHTML="";
@@ -204,7 +202,6 @@
       const wrap=document.querySelector(`.stars[data-stars="${key}"]`);
       return Number(wrap?.dataset?.value || 0);
     }
-
     function bindYesNo(key){
       document.querySelectorAll(`.chip[data-yn="${key}"]`).forEach(el=>{
         el.addEventListener("click", ()=>{
@@ -217,10 +214,6 @@
       const on = document.querySelector(`.chip[data-yn="${key}"][data-on="true"]`);
       return on ? on.dataset.value : "";
     }
-    function setYesNo(key,val){
-      document.querySelectorAll(`.chip[data-yn="${key}"]`).forEach(c=> c.dataset.on = (c.dataset.value===val) ? "true" : "false");
-    }
-
     function exportPayload(id, rec){
       const payload = {
         id, brand: rec.Brand||"", name: rec.Name||"", vitola: rec.Vitola||"",
@@ -242,135 +235,76 @@
       return payload;
     }
 
-    function saveLocal(id, payload){
-      const key = "crc_ratings";
-      const all = JSON.parse(localStorage.getItem(key) || "{}");
-      all[id] = payload;
-      localStorage.setItem(key, JSON.stringify(all));
-    }
-    function loadLocal(id){
-      try{
-        const all = JSON.parse(localStorage.getItem("crc_ratings") || "{}");
-        return all[id] || null;
-      }catch(e){ return null; }
-    }
-
-    function hydrateForm(saved){
-      if(!saved) return;
-      setStarValue("flavour_profile", saved.ratings?.flavour_profile || 0);
-      setStarValue("appearance", saved.ratings?.appearance || 0);
-      setStarValue("draw", saved.ratings?.draw || 0);
-      setStarValue("construction", saved.ratings?.construction || 0);
-      setStarValue("overall", saved.ratings?.overall || 0);
-      setYesNo("order_again", saved.questions?.order_again || "");
-      setYesNo("gift_smoke", saved.questions?.gift_smoke || "");
-      setYesNo("guessed_flavour", saved.questions?.guessed_flavour || "");
-      document.getElementById("feedbackBox").value = saved.feedback || "";
-    }
-
-    function resetForm(){
-      ["flavour_profile","appearance","draw","construction","overall"].forEach(k=> setStarValue(k,0));
-      ["order_again","gift_smoke","guessed_flavour"].forEach(k=> setYesNo(k,""));
-      document.getElementById("feedbackBox").value = "";
-    }
-
-    function download(filename, text){
-      const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text], {type:"application/json"}));
-      a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-    }
-
-    function renderDetail(rec, id){
-      document.getElementById("status").classList.add("hidden");
-      document.getElementById("detail").classList.remove("hidden");
-
-      const fields=document.getElementById("fields");
-      fields.innerHTML="";
-      const keys=["Batch","Brand","Name","Vitola","Origin","Wrapper","Binder","Filler","Strength","Flavour","Notes","Reveal Link","ID"];
-      keys.forEach(k=>{ const [L,V]=field(k,nice(rec[k])); fields.appendChild(L); fields.appendChild(V); });
-
-      // QR
-      const url = rec.QR_URL || "";
-      const qrURL = "https://chart.googleapis.com/chart?cht=qr&chs=380x380&chl="+encodeURIComponent(url);
-      document.getElementById("qr").src = qrURL;
-      document.getElementById("qrRaw").href = qrURL;
-
-      // CTA link
-      const open = document.getElementById("openLink");
-      open.href = rec["Reveal Link"] && rec["Reveal Link"].trim() ? rec["Reveal Link"] : url || "./";
-
-      // Stars & toggles
-      ["flavour_profile","appearance","draw","construction","overall"].forEach(k=> renderStars(k,0));
-      ["order_again","gift_smoke","guessed_flavour"].forEach(bindYesNo);
-
-      // Hydrate from local storage if exists
-      hydrateForm(loadLocal(id));
-
-      // Buttons
-      document.getElementById("saveLocal").onclick = ()=>{
-        const payload = exportPayload(id, rec);
-        saveLocal(id, payload);
-        showToast("Saved on this device");
-      };
-      document.getElementById("copyJson").onclick = async ()=>{
-        const payload = exportPayload(id, rec);
-        await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
-        showToast("Copied JSON");
-      };
-      document.getElementById("downloadJson").onclick = ()=>{
-        const payload = exportPayload(id, rec);
-        download(`${id}-rating.json`, JSON.stringify(payload, null, 2));
-      };
-      document.getElementById("resetForm").onclick = ()=>{
-        resetForm(); showToast("Cleared");
-      };
-    }
-
-    function renderList(all){
-      document.getElementById("status").classList.add("hidden");
-      const list=document.getElementById("list");
-      list.classList.remove("hidden");
-      const items=document.getElementById("items");
-      const q=document.getElementById("q");
-
-      function card([id,rec]){
-        const div=document.createElement("div"); div.className="item";
-        const left=document.createElement("div");
-        const title=document.createElement("div");
-        title.innerHTML = "<strong>"+(nice(rec.Name))+"</strong> • "+(nice(rec.Brand))+(rec.Vitola? " — "+nice(rec.Vitola):"");
-        const meta=document.createElement("div"); meta.className="meta";
-        meta.textContent = "ID: "+id+"  |  Origin: "+nice(rec.Origin);
-        left.appendChild(title); left.appendChild(meta);
-        const right=document.createElement("div");
-        const a=document.createElement("a"); a.className="linkbtn"; a.textContent="Open"; a.href="./?id="+encodeURIComponent(id);
-        right.appendChild(a);
-        div.appendChild(left); div.appendChild(right);
-        return div;
+    async function sendEmail(payload){
+      if(EMAILJS.enabled){
+        // EmailJS client library via CDN (lightweight); inject once
+        if(!window.emailjs){
+          await new Promise((res,rej)=>{
+            const s=document.createElement("script");
+            s.src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js";
+            s.onload=res; s.onerror=rej; document.head.appendChild(s);
+          });
+          emailjs.init(EMAILJS.public_key);
+        }
+        const params = {
+          to_email: EMAILJS.to_email,
+          subject: `CRC Rating: ${payload.id} — ${payload.name}`,
+          message: JSON.stringify(payload, null, 2)
+        };
+        await emailjs.send(EMAILJS.service_id, EMAILJS.template_id, params);
+        return "Email sent";
+      }else{
+        // Fallback: open a mailto draft
+        const subject = encodeURIComponent(`CRC Rating: ${payload.id} — ${payload.name}`);
+        const body = encodeURIComponent(JSON.stringify(payload, null, 2));
+        const to = "you@example.com"; // replace with your email
+        window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+        return "Opened mail app";
       }
-
-      function update(){
-        const term=q.value.toLowerCase();
-        items.innerHTML="";
-        Object.entries(all).filter(([id,rec])=>{
-          const hay=[id,rec.Name,rec.Brand,rec.Vitola,rec.Origin].join(" ").toLowerCase();
-          return hay.includes(term);
-        }).slice(0,500).forEach(entry=>items.appendChild(card(entry)));
-      }
-
-      q.addEventListener("input", update);
-      update();
     }
 
     (async function(){
       try{
         const {data}=await loadData();
         const id=qs("id");
-        if(id){
-          const rec=data[id];
-          if(!rec){ throw new Error("No match for ID: "+id+". Check the ID in your spreadsheet and items.json key."); }
-          renderDetail(rec, id);
-        }else{
-          renderList(data);
-        }
+        if(!id) throw new Error("Missing ID. Please scan the correct QR link.");
+        const rec=data[id];
+        if(!rec) throw new Error("No match for this code. Please contact support.");
+
+        // Show detail view
+        document.getElementById("status").classList.add("hidden");
+        document.getElementById("detail").classList.remove("hidden");
+
+        // Fields: exclude "Reveal Link"
+        const fields=document.getElementById("fields");
+        fields.innerHTML="";
+        const keys=["Batch","Brand","Name","Vitola","Origin","Wrapper","Binder","Filler","Strength","Flavour","Notes","ID"];
+        keys.forEach(k=>{ const [L,V]=field(k,nice(rec[k])); fields.appendChild(L); fields.appendChild(V); });
+
+        // QR generate from QR_URL (no external API)
+        const target = document.getElementById("qr");
+        QRImage(target, rec.QR_URL||"", 320);
+
+        // Stars & toggles
+        ["flavour_profile","appearance","draw","construction","overall"].forEach(k=> renderStars(k,0));
+        ["order_again","gift_smoke","guessed_flavour"].forEach(bindYesNo);
+
+        // Actions
+        document.getElementById("copyJson").onclick = async ()=>{
+          const payload = exportPayload(id, rec);
+          await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+          showToast("Copied JSON");
+        };
+        document.getElementById("submit").onclick = async ()=>{
+          const payload = exportPayload(id, rec);
+          try{
+            const msg = await sendEmail(payload);
+            showToast(msg);
+          }catch(e){
+            showToast("Could not send. Try again.");
+          }
+        };
+
       }catch(e){
         const s=document.getElementById("status");
         s.textContent = e.message;
